@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Mobile_app_assign_1</string>
+    <string name="action_settings">Reset</string>
+
+    <string name="initial_textbox_text">No Clicks Yet</string>
+    <string name="button_name">Register A Click</string>
+    <string name="togglebutton_name">Toggle Image</string>
+</resources>
