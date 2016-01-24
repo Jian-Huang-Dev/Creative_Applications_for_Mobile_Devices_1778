@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="movie_names">
+        <item>The Hobbit</item>
+        <item>Avengers</item>
+        <item>Transformers</item>
+        <item>Dragon Ball Z</item>
+    </string-array>
+
+    <integer-array name="movie_images">
+        <item>@drawable/hobbit</item>
+        <item>@drawable/avengers</item>
+        <item>@drawable/transformers</item>
+        <item>@drawable/dbz</item>
+    </integer-array>
+
+</resources>

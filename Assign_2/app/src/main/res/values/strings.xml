@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Assign_2</string>
+    <string name="action_settings">Settings</string>
+    <string name="enter_name">EnterNames</string>
+    <string name="view_txt">View</string>
+    <string name="store_txt">Store</string>
+    <string name="load_txt">Load</string>
+    <string name="exit_txt">Exit</string>
+    <string name="done_btn">Done</string>
+    <string name="add_btn">Add</string>
+    <string name="promote_file_name">Please Enter The File Name!</string>
+    <string name="confirm_btn">Confirm</string>
+    <string name="saved_files">People Information List</string>
+    <string name="file_format">.txt</string>
+    <string name="name_tag">Name: </string>
+    <string name="age_tag">Age: </string>
+    <string name="movie_tag">Movie: </string>
+    <string name="enter_user_name">Please Enter User Name</string>
+    <string name="enter_age">Please Enter Age</string>
+    <string name="empty_field_warning">Unsuccessfully! Please Fill in the Blank</string>
+    <string name="backup_data_warning">Some Exiting Data has being Saved!</string>
+    <string name="backup_file_name">system_automatic_backup</string>
+</resources>
