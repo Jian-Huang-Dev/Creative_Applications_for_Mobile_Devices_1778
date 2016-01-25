@@ -7,11 +7,6 @@ import android.widget.ListView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**
@@ -50,7 +45,8 @@ public class ViewPeopleListActivity extends Activity {
 
         for (int i = 0; i < saved_files.length; i++) {
             // get all people's information from a file
-            people_info_list_in_file = showPeopleInfo(saved_files[i]);
+            people_info_list_in_file =
+                    helper.readFile(saved_files[i], getApplicationContext()).split(", ");
 
             for (int j = 0; j < people_info_list_in_file.length; j++) {
                 // append each person's information into array list
@@ -61,33 +57,5 @@ public class ViewPeopleListActivity extends Activity {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 R.layout.list_view_text_style, android.R.id.text1, people_info_list_in_files);
         people_list_view.setAdapter(adapter);
-    }
-
-    /**
-     * Get all people's information from a file
-     * @param full_file_name
-     * @return
-     */
-    private String[] showPeopleInfo(String full_file_name) {
-        FileInputStream fis = null;
-        try {
-            fis = getApplicationContext().openFileInput(full_file_name);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        InputStreamReader isr = new InputStreamReader(fis);
-        BufferedReader bufferedReader = new BufferedReader(isr);
-        StringBuilder sb = new StringBuilder();
-        String line;
-
-        try {
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // convert stringbuilder to string and split the whole file into multiple people
-        return sb.toString().split(", ");
     }
 }

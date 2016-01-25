@@ -5,7 +5,15 @@
 
     <ListView
         android:id="@+id/file_list_view"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_width="match_parent">
+    </ListView>
+
+    <ListView
+        android:id="@+id/file_detail_view"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_width="match_parent">
     </ListView>
 

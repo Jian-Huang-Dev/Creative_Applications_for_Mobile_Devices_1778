@@ -5,6 +5,11 @@ import android.content.Context;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -45,5 +50,33 @@ public class helper {
         SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
         String currentDateTimeString = sdf.format(d);
         return currentDateTimeString;
+    }
+
+    /**
+     * Read details from a file
+     * @param full_file_name
+     * @return
+     */
+    public static String readFile(String full_file_name, Context context) {
+        FileInputStream fis = null;
+        try {
+            fis = context.openFileInput(full_file_name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        InputStreamReader isr = new InputStreamReader(fis);
+        BufferedReader bufferedReader = new BufferedReader(isr);
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        try {
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // convert stringbuilder to string and split the whole file into multiple people
+        return sb.toString();
     }
 }
