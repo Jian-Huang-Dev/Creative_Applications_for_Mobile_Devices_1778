@@ -64,8 +64,7 @@ public class LoadFragment extends android.support.v4.app.Fragment {
                         R.layout.list_view_text_style, android.R.id.text1, file_details_list);
                 detail_view.setAdapter(adapter);
 
-                Toast.makeText(getActivity(), list_view.getItemAtPosition(position).toString(),
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), full_file_name, Toast.LENGTH_SHORT).show();
             }
         });
 
