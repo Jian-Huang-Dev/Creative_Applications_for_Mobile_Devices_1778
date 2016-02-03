@@ -9,28 +9,34 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".MainActivity"
+    tools:context=".CameraActivity"
     tools:showIn="@layout/activity_main">
 
-    <SurfaceView
-        android:id="@+id/surfaceView"
-        android:layout_width="1440px"
-        android:layout_height="960px" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="@string/btn_capture"
-        android:id="@+id/btn_capture"
-        android:onClick="imageCapture"
-        android:layout_below="@+id/surfaceView"/>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/cameraView"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:scaleType="centerInside"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/camera_btn"
+        android:onClick="cameraViewBtnClicked"/>
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="@string/btn_gallery_view"
-        android:id="@+id/btn_gallery_view"
-        android:onClick="galleryViewBtnClicked"
-        android:layout_below="@+id/btn_capture"/>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/galleryView"
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/gallery_btn"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/cameraView"
+        android:onClick="galleryViewBtnClicked"/>
 
 </RelativeLayout>

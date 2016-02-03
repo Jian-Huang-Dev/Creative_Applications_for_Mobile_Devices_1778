@@ -15,6 +15,8 @@ public class ImageViews extends android.support.v4.app.FragmentActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_gridview);
 
+        Helper.hideNavBar(this);
+
         final GridView gridview = (GridView) findViewById(R.id.gridview);
         gridview.setAdapter(new ImageAdapter(this));
 

@@ -50,15 +50,10 @@ public class ImageAdapter extends BaseAdapter {
             textView = (TextView) v.findViewById(R.id.textView);
             textView.setText("TESTING");
             imageView = (ImageView) v.findViewById(R.id.imageView);
-            // if it's not recycled, initialize some attributes
-//            imageView = new ImageView(mContext);
-//            imageView.setLayoutParams(new GridView.LayoutParams(300, 300));
-//            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//            imageView.setPadding(8, 8, 8, 8);
 
             // loading the bitmap to the imageview
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
+            options.inSampleSize = 4;
             Bitmap bitmap = BitmapFactory.decodeFile(
                     Helper.getFiles()[position].getAbsolutePath(), options);
             imageView.setImageBitmap(bitmap);
