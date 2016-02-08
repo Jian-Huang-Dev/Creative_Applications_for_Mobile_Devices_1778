@@ -7,7 +7,6 @@ package mobileapp.jianhuang.assign_3;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,8 +23,7 @@ public class ImageAdapter extends BaseAdapter {
 
     public int getCount() {
 //        return mThumbIds.length;
-        Log.d("DEBUG", Integer.toString(Helper.getFileLength()));
-        return Helper.getFileLength();
+        return Helper.getFilesLength();
     }
 
     public Object getItem(int position) {
@@ -43,19 +41,26 @@ public class ImageAdapter extends BaseAdapter {
         View v;
         TextView textView;
         ImageView imageView;
+        String filePath;
+        String data;
 
         if (convertView == null) {
             v = new View(mContext);
             v = inflater.inflate(R.layout.gridview_cell, null);
-            textView = (TextView) v.findViewById(R.id.textView);
-            textView.setText("TESTING");
-            imageView = (ImageView) v.findViewById(R.id.imageView);
 
+
+            filePath = Helper.getFiles()[position].getAbsolutePath();
+
+            textView = (TextView) v.findViewById(R.id.textView);
+
+            data = Helper.GPSDataMap.get(filePath);
+            textView.setText(data);
+
+            imageView = (ImageView) v.findViewById(R.id.imageView);
             // loading the bitmap to the imageview
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 4;
-            Bitmap bitmap = BitmapFactory.decodeFile(
-                    Helper.getFiles()[position].getAbsolutePath(), options);
+            Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
             imageView.setImageBitmap(bitmap);
 
         } else {

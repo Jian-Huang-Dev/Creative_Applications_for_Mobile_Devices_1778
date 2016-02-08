@@ -1,16 +1,21 @@
 package mobileapp.jianhuang.assign_3;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
@@ -34,7 +39,11 @@ public class CameraActivity extends Activity implements PictureCallback,
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private Bitmap mCameraBitmap;
-//    private ArrayList<Bitmap> mImageList;
+
+    public String longitude, latitude;
+
+    public LocationManager locationMangaer = null;
+    public LocationListener locationListener = null;
 
     PictureCallback rawCallback;
     Camera.ShutterCallback shutterCallback;
@@ -47,11 +56,31 @@ public class CameraActivity extends Activity implements PictureCallback,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_activity);
 
+        locationMangaer = (LocationManager)
+                getSystemService(Context.LOCATION_SERVICE);
+
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         mSurfaceHolder = mSurfaceView.getHolder();
 
         mSurfaceHolder.addCallback(this);
         mSurfaceHolder.setType(mSurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        if (displayGpsStatus()) {
+
+            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            if (ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED) {
+
+                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+            locationListener = new MyLocationListener();
+            locationMangaer.requestLocationUpdates(LocationManager
+                    .GPS_PROVIDER, 5000, 10,locationListener);
+
+        } else {
+            alertbox("Gps Status!!", "Your GPS is: OFF");
+        }
 
         jpegCallback = new PictureCallback() {
 
@@ -59,10 +88,19 @@ public class CameraActivity extends Activity implements PictureCallback,
             public void onPictureTaken(byte[] data, Camera camera) {
                 FileOutputStream outStream = null;
                 try {
-                    outStream = new FileOutputStream(Helper.getFilePath());
-
+                    String filePath = Helper.getFilePath();
+                    outStream = new FileOutputStream(filePath);
                     outStream.write(data);
                     outStream.close();
+
+                    if (longitude == null && latitude == null) {
+                        Helper.GPSDataMap.put(filePath, "No Data" + "\n" + "No Data");
+                    }
+                    else {
+                        Helper.GPSDataMap.put(filePath, longitude + "\n" + latitude);
+                    }
+                    Helper.saveHashMapData(Helper.GPSDataMap);
+
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -152,8 +190,6 @@ public class CameraActivity extends Activity implements PictureCallback,
 
             params.setPreviewSize(cameraPreviewSize.width, cameraPreviewSize.height);
             params.setPictureSize(1920, 1080);
-            Log.d("MYDEBUG", Integer.toString(cameraPictueSize.width));
-            Log.d("MYDEBUG", Integer.toString(cameraPictueSize.height));
             mCamera.setParameters(params);
 
         } catch (RuntimeException e) {
@@ -200,41 +236,10 @@ public class CameraActivity extends Activity implements PictureCallback,
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
         Log.d("MYDEBUG", "onPictureTaken");
-        setGpsLatitude(camera);
-        setGpsLongitude(camera);
+
 //        mCameraBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 //        Helper.storeImage(mCameraBitmap);
         refreshCamera();
-    }
-
-    private void setGpsLatitude(Camera camera) {
-        Location location = getGpsLocation();
-        if (location == null) {
-            Log.d("DEBUG", "Cant not retrieve location data!");
-        } else {
-            camera.getParameters().setGpsLatitude(location.getLatitude());
-        }
-    }
-
-    private void setGpsLongitude(Camera camera) {
-        Location location = getGpsLocation();
-        if (location == null) {
-            Log.d("DEBUG", "Cant not retrieve location data!");
-        } else {
-            camera.getParameters().setGpsLongitude(location.getLongitude());
-        }
-    }
-
-    private Location getGpsLocation() {
-        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
-
-            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            return location;
-        }
-        return null;
     }
 
     public void onAccelerationChanged(float x, float y, float z) {
@@ -260,25 +265,11 @@ public class CameraActivity extends Activity implements PictureCallback,
                 listenOnAccelerometer();
             }
         }, getResources().getInteger(R.integer.time_to_take_pic));
-
-        //Check device supported Accelerometer senssor or not
-//        if (AccelerometerManager.isSupported(this)) {
-//
-//            //Start Accelerometer Listening
-//            AccelerometerManager.startListening(this);
-//        }
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-            Helper.hideNavBar(this);
-
-        Toast.makeText(getBaseContext(), "onResume Accelerometer Started",
-                Toast.LENGTH_SHORT).show();
-
         listenOnAccelerometer();
     }
 
@@ -291,9 +282,6 @@ public class CameraActivity extends Activity implements PictureCallback,
 
             //Start Accelerometer Listening
             AccelerometerManager.stopListening();
-
-            Toast.makeText(getBaseContext(), "onStop Accelerometer Stoped",
-                    Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -350,5 +338,81 @@ public class CameraActivity extends Activity implements PictureCallback,
             return false;
         }
         return true;
+    }
+
+    private Boolean displayGpsStatus() {
+        ContentResolver contentResolver = getBaseContext()
+                .getContentResolver();
+        boolean gpsStatus = Settings.Secure
+                .isLocationProviderEnabled(contentResolver,
+                        LocationManager.GPS_PROVIDER);
+        if (gpsStatus) {
+            return true;
+
+        } else {
+            return false;
+        }
+    }
+
+    protected void alertbox(String title, String mymessage) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your Device's GPS is Disable")
+                .setCancelable(false)
+                .setTitle("Gps Status")
+                .setPositiveButton("Turn On GPS",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // finish the current activity
+                                // AlertBoxAdvance.this.finish();
+                                Intent myIntent = new Intent(
+                                        Settings.ACTION_SETTINGS);
+                                startActivity(myIntent);
+                                dialog.cancel();
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // cancel the dialog box
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private class MyLocationListener implements LocationListener {
+        @Override
+        public void onLocationChanged(Location loc) {
+
+            longitude = "long: " + Double.toString(loc.getLongitude());
+            Log.v("mygps", longitude);
+            latitude = "lat: " + Double.toString(loc.getLatitude());
+            Log.v("mygps", latitude);
+        }
+
+        public String getGPSLongitude() {
+            return longitude;
+        }
+
+        public String getGPSLatitude() {
+            return latitude;
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onStatusChanged(String provider,
+                                    int status, Bundle extras) {
+            // TODO Auto-generated method stub
+        }
     }
 }

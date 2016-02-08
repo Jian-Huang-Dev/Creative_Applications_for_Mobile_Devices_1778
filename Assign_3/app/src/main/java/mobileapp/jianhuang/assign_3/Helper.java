@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,6 +21,8 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Properties;
 
 /**
  * Created by jianhuang on 16-01-28.
@@ -28,10 +31,12 @@ public class Helper {
     public static int position;
 
     public static final String STORAGE_PATH = Environment.getExternalStorageDirectory() + "/DCIM/MyCamera/";
+    public static final String HASHMAPFILEPATH = Environment.getExternalStorageDirectory() + "/DCIM/hashMap.properties";
 
     public static ArrayList<Bitmap> imageList = null;
+    public static HashMap<String, String> GPSDataMap = new HashMap<>();
 
-    public static int getFileLength() {
+    public static int getFilesLength() {
         File fileDir = getFilesDirectory(STORAGE_PATH);
         if (!fileDir.exists()) {
             if (!fileDir.mkdirs()) {
@@ -103,8 +108,11 @@ public class Helper {
     }
 
     public static void deleteFile(int pos) {
-        File file = new File(new File(Helper.STORAGE_PATH), getFileName(pos));
+        String fileName = getFileName(pos);
+        File file = new File(new File(Helper.STORAGE_PATH), fileName);
         file.delete();
+
+        Helper.GPSDataMap.remove(Helper.STORAGE_PATH + fileName);
     }
 
     public static String getFilePath() {
@@ -200,10 +208,43 @@ public class Helper {
 
     public static void hideNavBar(Activity activity) {
         View decorView = activity.getWindow().getDecorView();
-        //int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    public static void showNavBar(Activity activity) {
+        View decorView = activity.getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN  |
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(uiOptions);
+        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    public static void saveHashMapData(HashMap<String, String> hashMap)
+            throws FileNotFoundException, IOException {
+        Properties properties = new Properties();
+        properties.putAll(hashMap);
+        properties.store(new FileOutputStream(HASHMAPFILEPATH), null);
+    }
+
+    public static void loadHashMapData() throws IOException {
+        HashMap<String, String> hashMap = new HashMap<String, String>();
+        Properties properties = new Properties();
+
+        File file = new File(HASHMAPFILEPATH);
+        if (file.exists()) {
+            properties.load(new FileInputStream(HASHMAPFILEPATH));
+
+            for (String key : properties.stringPropertyNames()) {
+                hashMap.put(key, properties.getProperty(key));
+                GPSDataMap = hashMap;
+            }
+        }
+        else {
+            file.createNewFile();
+        }
     }
 }

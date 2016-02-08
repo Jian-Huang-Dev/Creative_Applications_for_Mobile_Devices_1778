@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class AccelerometerManager {
      * Accuracy configuration
      */
     private static float threshold = 10.0f;
-    private static int interval = 200;
+    private static int interval = 2000;
 
     private static Sensor sensor;
     private static SensorManager sensorManager;
@@ -172,46 +171,33 @@ public class AccelerometerManager {
                     z = event.values[2];
 
                     // if not interesting in shake events
-                    // just remove the whole if then else block
                     if (lastUpdate == 0) {
                         lastUpdate = now;
                         lastShake = now;
                         lastX = x;
                         lastY = y;
                         lastZ = z;
-                        Toast.makeText(aContext, "No Motion detected",
-                                Toast.LENGTH_SHORT).show();
 
                     } else {
                         timeDiff = now - lastUpdate;
 
                         if (timeDiff > 0) {
 
-                    /*force = Math.abs(x + y + z - lastX - lastY - lastZ)
-                                / timeDiff;*/
                             force = Math.abs(x + y + z - lastX - lastY - lastZ);
 
                             if (Float.compare(force, threshold) > 0) {
-                                //Toast.makeText(Accelerometer.getContext(),
-                                //(now-lastShake)+"  >= "+interval, 1000).show();
 
-                                if (now - lastShake >= interval) {
-
+                                if ((now - lastShake) / 1000000 >= interval) {
                                     // trigger shake event
                                     listener.onShake(force);
-                                } else {
-                                    Toast.makeText(aContext, "No Motion detected",
-                                            Toast.LENGTH_SHORT).show();
-
                                 }
+
                                 lastShake = now;
                             }
                             lastX = x;
                             lastY = y;
                             lastZ = z;
                             lastUpdate = now;
-                        } else {
-                            Toast.makeText(aContext, "No Motion detected", Toast.LENGTH_SHORT).show();
                         }
                     }
                     // trigger change event

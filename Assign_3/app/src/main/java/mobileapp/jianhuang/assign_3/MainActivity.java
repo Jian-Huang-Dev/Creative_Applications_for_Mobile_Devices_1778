@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import java.io.IOException;
+
 /**
  * Created by jianhuang on 16-02-02.
  */
@@ -14,6 +16,11 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        try {
+            Helper.loadHashMapData();
+        } catch (IOException e){
+        }
     }
 
     public void cameraViewBtnClicked(View v) {
