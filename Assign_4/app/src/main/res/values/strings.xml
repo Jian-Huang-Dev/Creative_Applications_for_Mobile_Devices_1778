@@ -2,4 +2,8 @@
     <string name="app_name">Assign_4</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="clear_btn">Clear</string>
+    <string name="populate_btn">Populate Data</string>
+    <string name="search_btn">More Info</string>
+    <string name="db_url_title">Database URL:</string>
 </resources>
