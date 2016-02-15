@@ -4,6 +4,9 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="clear_btn">Clear</string>
     <string name="populate_btn">Populate Data</string>
-    <string name="search_btn">More Info</string>
+    <string name="moreInfo_btn">More Info</string>
+    <string name="del_btn">Delete</string>
+    <string name="search_btn">Search</string>
     <string name="db_url_title">Database URL:</string>
+    <string name="app_not_available">App not Available!</string>
 </resources>

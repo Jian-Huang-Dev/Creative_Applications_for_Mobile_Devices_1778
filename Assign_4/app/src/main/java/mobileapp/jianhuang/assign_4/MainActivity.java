@@ -3,28 +3,24 @@ package mobileapp.jianhuang.assign_4;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +28,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity
+        extends AppCompatActivity
+        implements SwipeViews.SwipeViewsListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -42,16 +40,16 @@ public class MainActivity extends AppCompatActivity {
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
     private WebView mBrowser;
     private EditText mUrlSearchBox;
     private Button mClearBtn, mPopulateDataBtn, mMoreInfoBtn;
     ProgressDialog mProgressDialog;
+    private DBHelper mDataBase;
+    private int mNumUpdated = 0;
 
     /**
      * The {@link ViewPager} that will host the section contents.
      */
-    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        mBrowser = (WebView) findViewById(R.id.webkit);
 //        mBrowser.loadUrl(Helper.WEBURL);
+        mDataBase = new DBHelper(this);
 
         mUrlSearchBox = (EditText) findViewById(R.id.urlSearchBox);
         mUrlSearchBox.setText(Helper.WEBURL);
@@ -71,16 +70,34 @@ public class MainActivity extends AppCompatActivity {
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this);
-        mProgressDialog.setMessage("A message");
+        mProgressDialog.setMessage("Downloading...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setProgressNumberFormat(null);
         mProgressDialog.setProgressPercentFormat(null);
         mProgressDialog.setCancelable(true);
 
+        // if empty database, disable buttons
+        if(mDataBase.getCursor().getCount() == 0) {
+            mClearBtn.setClickable(false);
+            mMoreInfoBtn.setClickable(false);
+            mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+            mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+        }
+
         mClearBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on click
+                mDataBase.deleteTable();
+
+                mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+                mClearBtn.setClickable(false);
+                mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+                mMoreInfoBtn.setClickable(false);
+
+
+                Toast.makeText(getApplicationContext(),
+                        "Cleared Database!",
+                        Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -96,40 +113,26 @@ public class MainActivity extends AppCompatActivity {
                         downloadTask.cancel(true);
                     }
                 });
+
+                mMoreInfoBtn.setAlpha(Helper.NO_FADE);
+                mMoreInfoBtn.setClickable(true);
+                mClearBtn.setAlpha(Helper.NO_FADE);
+                mClearBtn.setClickable(true);
             }
         });
 
         mMoreInfoBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on click
+                SwipeViews swipeViewsFragment = new SwipeViews();
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragment_container, swipeViewsFragment);
+                transaction.addToBackStack(null); // add to back stack
+                transaction.commit(); // Commit the transaction
             }
         });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-//        mViewPager = (ViewPager) findViewById(R.id.container);
-//        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-//        if (getFragmentManager().findFragmentById(android.R.id.content) == null) {
-//            getFragmentManager().beginTransaction()
-//                    .add(android.R.id.content,
-//                            new AsyncDemoFragment()).commit();
-//        }
-    }
-
-    public void cameraViewBtnClicked(View v) {
-        Intent intent = new Intent(this, DownloadFile.class);
-        startActivity(intent);
-    }
-
-    public void galleryViewBtnClicked(View v) {
-//        Intent intent = new Intent(this, ImageViews.class);
-//        startActivity(intent);
     }
 
     @Override
@@ -169,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... sUrl) {
+            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
             InputStream input = null;
             OutputStream output = null;
             HttpURLConnection connection = null;
@@ -192,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                 input = connection.getInputStream();
                 output = new FileOutputStream(Helper.getOutputMediaFile());
 
-                byte data[] = new byte[1];
+                byte data[] = new byte[Helper.READBYTE];
                 long total = 0;
                 int count;
                 while ((count = input.read(data)) != -1) {
@@ -203,20 +207,40 @@ public class MainActivity extends AppCompatActivity {
                     }
                     total += count;
                     // publishing the progress....
-                    Log.d("progress", Integer.toString(fileLength));
                     if (fileLength > 0) {// only if total length is known
                         publishProgress((int) (total * 100 / fileLength));
-                        Log.d("progress", Integer.toString((int) (total * 100 / fileLength)));
                     }
 
+                    byteOutputStream.write(data, 0, count);
                     output.write(data, 0, count);
                 }
             } catch (Exception e) {
                 return e.toString();
             } finally {
                 try {
-                    if (output != null)
+                    if (output != null) {
+                        mNumUpdated = 0;
+                        String string = new String(byteOutputStream.toByteArray());
+                        String[] stringArry = string.split("\n");
+                        // insert data into database
+                        if (mDataBase.getCursor().getCount() == 0) {
+                            for (int i = 0; i < stringArry.length; i += 3) {
+                                    mNumUpdated++;
+                                    Log.d("testtest", "ADDING NEW TABLE");
+                                    mDataBase.insertInfo(stringArry[i], stringArry[i + 1], stringArry[i + 2]);
+                            }
+                        } else {
+                            for (int i = 0; i < stringArry.length; i += 3) {
+                                if (!Helper.isNameExist(mDataBase, stringArry[i])) {
+                                    mNumUpdated++;
+                                    Log.d("testtest", "ADDING " + stringArry[i]);
+                                    mDataBase.insertInfo(stringArry[i], stringArry[i + 1], stringArry[i + 2]);
+                                }
+                            }
+                        }
+
                         output.close();
+                    }
                     if (input != null)
                         input.close();
                 } catch (IOException ignored) {
@@ -244,9 +268,6 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(Integer... progress) {
             super.onProgressUpdate(progress);
             // if we get here, length is known, now set indeterminate to false
-            mProgressDialog.setIndeterminate(false);
-            mProgressDialog.setMax(100);
-            mProgressDialog.setProgress(progress[0]);
         }
 
         @Override
@@ -256,79 +277,23 @@ public class MainActivity extends AppCompatActivity {
             if (result != null)
                 Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
             else
-                Toast.makeText(context,"File downloaded", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,"Populated Database, " +
+                        mNumUpdated + " item(s) updated",
+                        Toast.LENGTH_SHORT).show();
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+//        viewPager.setCurrentItem(0);
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "SECTION 1";
-                case 1:
-                    return "SECTION 2";
-                case 2:
-                    return "SECTION 3";
-            }
-            return null;
-        }
+    public void disableBtn() {
+        Log.d("cursor", "activitycalling");
+        mClearBtn.setClickable(false);
+        mMoreInfoBtn.setClickable(false);
+        mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+        mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
     }
 }

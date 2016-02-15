@@ -48,9 +48,15 @@
             android:id="@+id/moreInfoBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/search_btn"
+            android:text="@string/moreInfo_btn"
             android:layout_alignParentBottom="true"
             android:layout_toRightOf="@+id/populateBtn"/>
 
     </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </RelativeLayout>
