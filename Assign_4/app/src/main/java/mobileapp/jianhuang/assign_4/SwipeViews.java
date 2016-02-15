@@ -68,7 +68,7 @@ public class SwipeViews extends android.support.v4.app.Fragment {
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
 
         mDelBtn = (Button) view.findViewById(R.id.delBtn);
         mSearchBtn = (Button) view.findViewById(R.id.searchBtn);
@@ -129,7 +129,6 @@ public class SwipeViews extends android.support.v4.app.Fragment {
         @Override
         public int getCount() {
             // Show total pages.
-            Log.d("cursor", Integer.toString(mDB.getCursor().getCount()) + " getCount");
             return mCS.getCount();
         }
 
