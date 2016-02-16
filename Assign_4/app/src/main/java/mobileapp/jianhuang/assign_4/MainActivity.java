@@ -3,6 +3,8 @@ package mobileapp.jianhuang.assign_4;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -21,6 +23,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +49,10 @@ public class MainActivity
     ProgressDialog mProgressDialog;
     private DBHelper mDataBase;
     private int mNumUpdated = 0;
+    private Bitmap bitmap;
+    private String[] allImageNames;
+    private String[] allImageUrls;
+    private boolean downloadImage = false;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -104,8 +111,11 @@ public class MainActivity
         mPopulateDataBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // execute this when the downloader must be fired
-                final DownloadTask downloadTask = new DownloadTask(MainActivity.this);
-                downloadTask.execute(mUrlSearchBox.getText().toString());
+                downloadImage = false;
+                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, Helper.IMAGE_TYPE_TXT);
+                String[] strArr = {mUrlSearchBox.getText().toString()};
+//                String[] strArr = {"http://www.eecg.utoronto.ca/~jayar/pics/elon.jpg"};
+                downloadTask.execute(strArr);
 
                 mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
@@ -165,9 +175,11 @@ public class MainActivity
 
         private Context context;
         private PowerManager.WakeLock mWakeLock;
+        private String imageType;
 
-        public DownloadTask(Context context) {
+        public DownloadTask(Context context, String imageType) {
             this.context = context;
+            this.imageType = imageType;
         }
 
         @Override
@@ -176,79 +188,102 @@ public class MainActivity
             InputStream input = null;
             OutputStream output = null;
             HttpURLConnection connection = null;
-            try {
-                URL url = new URL(sUrl[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
+            int count;
+            byte data[];
 
-                // expect HTTP 200 OK, so we don't mistakenly save error report
-                // instead of the file
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    return "Server returned HTTP " + connection.getResponseCode()
-                            + " " + connection.getResponseMessage();
-                }
-
-                // this will be useful to display download percentage
-                // might be -1: server did not report the length
-                int fileLength = connection.getContentLength();
-
-                // download the file
-                input = connection.getInputStream();
-                output = new FileOutputStream(Helper.getOutputMediaFile());
-
-                byte data[] = new byte[Helper.READBYTE];
-                long total = 0;
-                int count;
-                while ((count = input.read(data)) != -1) {
-                    // allow canceling with back button
-                    if (isCancelled()) {
-                        input.close();
-                        return null;
-                    }
-                    total += count;
-                    // publishing the progress....
-                    if (fileLength > 0) {// only if total length is known
-                        publishProgress((int) (total * 100 / fileLength));
-                    }
-
-                    byteOutputStream.write(data, 0, count);
-                    output.write(data, 0, count);
-                }
-            } catch (Exception e) {
-                return e.toString();
-            } finally {
+            if (imageType.equals(Helper.IMAGE_TYPE_TXT)) {
+                Log.d("filePath", Integer.toString(sUrl.length));
                 try {
-                    if (output != null) {
-                        mNumUpdated = 0;
-                        String string = new String(byteOutputStream.toByteArray());
-                        String[] stringArry = string.split("\n");
-                        // insert data into database
-                        if (mDataBase.getCursor().getCount() == 0) {
-                            for (int i = 0; i < stringArry.length; i += 3) {
-                                    mNumUpdated++;
-                                    Log.d("testtest", "ADDING NEW TABLE");
-                                    mDataBase.insertInfo(stringArry[i], stringArry[i + 1], stringArry[i + 2]);
-                            }
-                        } else {
-                            for (int i = 0; i < stringArry.length; i += 3) {
-                                if (!Helper.isNameExist(mDataBase, stringArry[i])) {
-                                    mNumUpdated++;
-                                    Log.d("testtest", "ADDING " + stringArry[i]);
-                                    mDataBase.insertInfo(stringArry[i], stringArry[i + 1], stringArry[i + 2]);
-                                }
-                            }
+                    URL url = new URL(sUrl[0]);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+
+                    // expect HTTP 200 OK, so we don't mistakenly save error report
+                    // instead of the file
+                    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                        return "Server returned HTTP " + connection.getResponseCode()
+                                + " " + connection.getResponseMessage();
+                    }
+
+                    // download the file
+                    input = connection.getInputStream();
+                    output = new FileOutputStream(Helper.getOutputMediaFile(Helper.getTxtFileName()));
+
+                    data = new byte[Helper.READBYTE];
+                    while ((count = input.read(data)) != -1) {
+                        // allow canceling with back button
+                        if (isCancelled()) {
+                            input.close();
+                            return null;
+                        }
+                        byteOutputStream.write(data, 0, count);
+                        output.write(data, 0, count);
+                    }
+
+                } catch (Exception e) {
+                    return e.toString();
+
+                } finally {
+                    try {
+                        if (output != null) {
+                            mNumUpdated = Helper.populateDatabase(mDataBase, byteOutputStream);
+                            output.close();
+                        }
+                        if (input != null)
+                            input.close();
+
+                    } catch (IOException ignored) {
+                    }
+
+                    if (connection != null)
+                        connection.disconnect();
+                }
+            } else { //Helper.IMAGE_TYPE_JPG
+                for (int k = 0; k < sUrl.length; k++) {
+                    try {
+                        URL url = new URL(sUrl[k]);
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.connect();
+
+                        // expect HTTP 200 OK, so we don't mistakenly save error report
+                        // instead of the file
+                        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                            return "Server returned HTTP " + connection.getResponseCode()
+                                    + " " + connection.getResponseMessage();
                         }
 
-                        output.close();
-                    }
-                    if (input != null)
-                        input.close();
-                } catch (IOException ignored) {
-                }
+                        // download the file
+//                        mDataBase.getCursor().moveToPosition(k);
+                        input = connection.getInputStream();
+                        output = new FileOutputStream(Helper.getImageOutputMediaFile(allImageNames[k]));
+                        bitmap = BitmapFactory.decodeStream(input);
+                        try {
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output);
+                            output.close();
+                        } catch (FileNotFoundException e) {
+                        } catch (IOException e) {
+                        }
 
-                if (connection != null)
-                    connection.disconnect();
+                    } catch (Exception e) {
+                        return e.toString();
+
+                    } finally {
+                        try {
+                            if (output != null) {
+                                output.close();
+                            }
+                            if (input != null)
+                                input.close();
+
+                        } catch (IOException ignored) {
+                        }
+
+                        if (connection != null)
+                            connection.disconnect();
+                    }
+                }
             }
+
             return null;
         }
 
@@ -274,12 +309,25 @@ public class MainActivity
         protected void onPostExecute(String result) {
             mWakeLock.release();
             mProgressDialog.dismiss();
-            if (result != null)
-                Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
-            else
-                Toast.makeText(context,"Populated Database, " +
-                        mNumUpdated + " item(s) updated",
-                        Toast.LENGTH_SHORT).show();
+            if (downloadImage) {
+                if (result != null) {
+                    Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
+                }
+                else {
+                    Toast.makeText(context, "Populated Database, " +
+                                    mNumUpdated + " item(s) updated",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            if (!downloadImage) {
+                downloadImage = true;
+                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, Helper.IMAGE_TYPE_JPG);
+                allImageUrls = Helper.getAllImageURLs(mDataBase);
+                allImageNames = Helper.getAllImageNames(mDataBase);
+
+                downloadTask.execute(allImageUrls);
+            }
         }
     }
 

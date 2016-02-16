@@ -131,19 +131,6 @@ public class SwipeViews extends android.support.v4.app.Fragment {
             // Show total pages.
             return mCS.getCount();
         }
-
-//        @Override
-//        public CharSequence getPageTitle(int position) {
-//            switch (position) {
-//                case 0:
-//                    return "SECTION 1";
-//                case 1:
-//                    return "SECTION 2";
-//                case 2:
-//                    return "SECTION 3";
-//            }
-//            return null;
-//        }
     }
 
     /**
@@ -197,7 +184,19 @@ public class SwipeViews extends android.support.v4.app.Fragment {
             Bitmap bmp = BitmapFactory.decodeFile(filePath);
             imageView.setImageBitmap(bmp);
 
-            Log.d("pathhh", filePath);
+//            try {
+//                Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new
+//                        URL("http://www.eecg.utoronto.ca/~jayar/" +
+//                        Helper.db_cs.getString(Helper.PATH_INDEX)).getContent());
+//
+//                imageView.setImageBitmap(bitmap);
+//
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
             return rootView;
         }
