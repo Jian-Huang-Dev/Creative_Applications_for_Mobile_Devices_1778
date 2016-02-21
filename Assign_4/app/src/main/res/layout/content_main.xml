@@ -45,10 +45,10 @@
             android:layout_toRightOf="@+id/clearBtn"/>
 
         <Button
-            android:id="@+id/moreInfoBtn"
+            android:id="@+id/searchBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/moreInfo_btn"
+            android:text="@string/search_btn"
             android:layout_alignParentBottom="true"
             android:layout_toRightOf="@+id/populateBtn"/>
 

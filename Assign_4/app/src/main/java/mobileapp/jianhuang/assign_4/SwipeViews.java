@@ -33,7 +33,7 @@ public class SwipeViews extends android.support.v4.app.Fragment {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
-    private Button mDelBtn, mSearchBtn;
+    private Button mDelBtn, mMoreInfoBtn;
     protected DBHelper mDB;
     protected Cursor mCS;
 
@@ -73,7 +73,7 @@ public class SwipeViews extends android.support.v4.app.Fragment {
         mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
 
         mDelBtn = (Button) view.findViewById(R.id.delBtn);
-        mSearchBtn = (Button) view.findViewById(R.id.searchBtn);
+        mMoreInfoBtn = (Button) view.findViewById(R.id.moreInfoBtn);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) view.findViewById(R.id.container);
@@ -119,7 +119,7 @@ public class SwipeViews extends android.support.v4.app.Fragment {
             }
         });
 
-        mSearchBtn.setOnClickListener(new View.OnClickListener() {
+        mMoreInfoBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 mCS.moveToPosition(mViewPager.getCurrentItem());
                 performSearch(mCS.getString(Helper.NAME_INDEX));

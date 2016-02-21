@@ -43,7 +43,7 @@ public class MainActivity
      */
     private WebView mBrowser;
     private EditText mUrlSearchBox;
-    private Button mClearBtn, mPopulateDataBtn, mMoreInfoBtn;
+    private Button mClearBtn, mPopulateDataBtn, mSearchBtn;
     ProgressDialog mProgressDialog;
     private DBHelper mDataBase;
     private Bitmap bitmap;
@@ -69,7 +69,7 @@ public class MainActivity
 
         mClearBtn = (Button) findViewById(R.id.clearBtn);
         mPopulateDataBtn = (Button) findViewById(R.id.populateBtn);
-        mMoreInfoBtn = (Button) findViewById(R.id.moreInfoBtn);
+        mSearchBtn = (Button) findViewById(R.id.searchBtn);
 
 
         // instantiate it within the onCreate method
@@ -84,9 +84,9 @@ public class MainActivity
         // if empty database, disable buttons
         if(mDataBase.getCursor().getCount() == 0) {
             mClearBtn.setClickable(false);
-            mMoreInfoBtn.setClickable(false);
+            mSearchBtn.setClickable(false);
             mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
-            mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+            mSearchBtn.setAlpha(Helper.FADE_IN_INTENSITY);
         }
 
         mClearBtn.setOnClickListener(new View.OnClickListener() {
@@ -95,8 +95,8 @@ public class MainActivity
 
                 mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
                 mClearBtn.setClickable(false);
-                mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
-                mMoreInfoBtn.setClickable(false);
+                mSearchBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+                mSearchBtn.setClickable(false);
 
 
                 Toast.makeText(getApplicationContext(),
@@ -132,7 +132,7 @@ public class MainActivity
             }
         });
 
-        mMoreInfoBtn.setOnClickListener(new View.OnClickListener() {
+        mSearchBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 SwipeViews swipeViewsFragment = new SwipeViews();
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -301,8 +301,8 @@ public class MainActivity
                                         Helper.mNumUpdated + " item(s) updated",
                                 Toast.LENGTH_SHORT).show();
 
-                        mMoreInfoBtn.setAlpha(Helper.NO_FADE);
-                        mMoreInfoBtn.setClickable(true);
+                        mSearchBtn.setAlpha(Helper.NO_FADE);
+                        mSearchBtn.setClickable(true);
                         mClearBtn.setAlpha(Helper.NO_FADE);
                         mClearBtn.setClickable(true);
                     }
@@ -329,8 +329,8 @@ public class MainActivity
     public void disableBtn() {
         Log.d("cursor", "activitycalling");
         mClearBtn.setClickable(false);
-        mMoreInfoBtn.setClickable(false);
+        mSearchBtn.setClickable(false);
         mClearBtn.setAlpha(Helper.FADE_IN_INTENSITY);
-        mMoreInfoBtn.setAlpha(Helper.FADE_IN_INTENSITY);
+        mSearchBtn.setAlpha(Helper.FADE_IN_INTENSITY);
     }
 }
