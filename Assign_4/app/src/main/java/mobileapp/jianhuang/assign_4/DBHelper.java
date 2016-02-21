@@ -3,6 +3,7 @@ package mobileapp.jianhuang.assign_4;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -59,11 +60,11 @@ public class DBHelper extends SQLiteOpenHelper {
         return res;
     }
 
-//    public int numberOfRows(){
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        int numRows = (int) DatabaseUtils.queryNumEntries(db, CONTACTS_TABLE_NAME);
-//        return numRows;
-//    }
+    public int getNumberOfRows(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        int numRows = (int) DatabaseUtils.queryNumEntries(db, PEOPLE_INFO_TABLE_NAME);
+        return numRows;
+    }
 //
 //    public boolean updateContact (Integer id, String name, String phone, String email, String street,String place)
 //    {
@@ -84,12 +85,12 @@ public class DBHelper extends SQLiteOpenHelper {
         return db.delete("people_info", null, null);
     }
 
-    public Integer deleteTableRow(Integer id)
+    public Integer deleteTableRow(String name)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete("people_info",
-                "id = ? ",
-                new String[] { Integer.toString(id) });
+                "name = ? ",
+                new String[] { name });
     }
 
 //    public ArrayList<String> getAllCotacts()

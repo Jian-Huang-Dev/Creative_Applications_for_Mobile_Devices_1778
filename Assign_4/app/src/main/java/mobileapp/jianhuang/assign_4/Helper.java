@@ -19,6 +19,7 @@ public class Helper {
     public static final String IMAGE_FOLDER_WEBURL = "http://www.eecg.utoronto.ca/~jayar/";
     public static final int READBYTE = 1024;
     public static Cursor db_cs;
+    public static int mNumUpdated = 0;
     public static final float FADE_IN_INTENSITY = 0.2f;
     public static final float NO_FADE = 1f;
     public static final String IMAGE_TYPE_JPG = "jpg";

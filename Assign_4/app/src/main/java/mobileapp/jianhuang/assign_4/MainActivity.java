@@ -14,8 +14,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -48,7 +46,6 @@ public class MainActivity
     private Button mClearBtn, mPopulateDataBtn, mMoreInfoBtn;
     ProgressDialog mProgressDialog;
     private DBHelper mDataBase;
-    private int mNumUpdated = 0;
     private Bitmap bitmap;
     private String[] allImageNames;
     private String[] allImageUrls;
@@ -105,6 +102,9 @@ public class MainActivity
                 Toast.makeText(getApplicationContext(),
                         "Cleared Database!",
                         Toast.LENGTH_SHORT).show();
+
+                // reset
+                Helper.mNumUpdated = 0;
             }
         });
 
@@ -124,10 +124,11 @@ public class MainActivity
                     }
                 });
 
-                mMoreInfoBtn.setAlpha(Helper.NO_FADE);
-                mMoreInfoBtn.setClickable(true);
-                mClearBtn.setAlpha(Helper.NO_FADE);
-                mClearBtn.setClickable(true);
+//                if (mNumUpdated == 0) {
+//
+//                } else {
+//
+//                }
             }
         });
 
@@ -143,28 +144,6 @@ public class MainActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -226,7 +205,7 @@ public class MainActivity
                 } finally {
                     try {
                         if (output != null) {
-                            mNumUpdated = Helper.populateDatabase(mDataBase, byteOutputStream);
+                            Helper.mNumUpdated = Helper.populateDatabase(mDataBase, byteOutputStream);
                             output.close();
                         }
                         if (input != null)
@@ -314,9 +293,19 @@ public class MainActivity
                     Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
                 }
                 else {
-                    Toast.makeText(context, "Populated Database, " +
-                                    mNumUpdated + " item(s) updated",
-                            Toast.LENGTH_SHORT).show();
+                    if (Helper.mNumUpdated == 0) {
+                        Toast.makeText(context, "Nothing gets populated!",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "Populated Database, " +
+                                        Helper.mNumUpdated + " item(s) updated",
+                                Toast.LENGTH_SHORT).show();
+
+                        mMoreInfoBtn.setAlpha(Helper.NO_FADE);
+                        mMoreInfoBtn.setClickable(true);
+                        mClearBtn.setAlpha(Helper.NO_FADE);
+                        mClearBtn.setClickable(true);
+                    }
                 }
             }
 

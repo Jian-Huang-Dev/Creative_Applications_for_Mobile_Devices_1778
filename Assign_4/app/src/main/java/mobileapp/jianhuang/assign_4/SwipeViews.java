@@ -1,7 +1,9 @@
 package mobileapp.jianhuang.assign_4;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -81,20 +83,39 @@ public class SwipeViews extends android.support.v4.app.Fragment {
 
         mDelBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                mDB.deleteTableRow(mViewPager.getCurrentItem() + 1);
-                mSectionsPagerAdapter.notifyDataSetChanged();
-//                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+                mCS.moveToPosition(mViewPager.getCurrentItem());
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setCancelable(false)
+                        .setTitle("Delete " + mCS.getString(Helper.NAME_INDEX) + "?")
+                        .setPositiveButton("Delete",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        mDB.deleteTableRow(mCS.getString(Helper.NAME_INDEX));
+                                        Helper.mNumUpdated--;
 
-                Toast.makeText(getActivity().getApplicationContext(),
-                        "Deleted!",
-                        Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getActivity().getApplicationContext(),
+                                                "Deleted " + mCS.getString(1),
+                                                Toast.LENGTH_SHORT).show();
 
-                // Database is empty
-                Log.d("getcount", Integer.toString(mDB.getCursor().getCount()));
-                if(mDB.getCursor().getCount() == 0) {
-                    //disable clear and more-info buttons in mainactivity
-                    activityCallback.disableBtn();
-                }
+                                        // Check if Database is empty
+                                        Log.d("mydebug", Integer.toString(mDB.getCursor().getCount()));
+                                        if(mDB.getNumberOfRows() == 0) {
+                                            //disable clear and more-info buttons in mainactivity
+                                            activityCallback.disableBtn();
+                                        }
+
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setNegativeButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        // cancel the dialog box
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
             }
         });
 
